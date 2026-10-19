@@ -4,11 +4,29 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, Integer, Numeric, String, Text, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import Boolean, CHAR, DateTime, Enum as SAEnum, ForeignKey, Integer, JSON, Numeric, String, Text, func
+from sqlalchemy.types import TypeDecorator
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
+
+
+class UUIDChar(TypeDecorator):
+    """Store UUID values as CHAR(36) for MySQL."""
+
+    impl = CHAR(36)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return uuid.UUID(str(value))
+
 
 
 class UserRole(str, Enum):
@@ -47,14 +65,14 @@ class PaymentStatus(str, Enum):
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), primary_key=True, default=uuid.uuid4)
     full_name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     phone_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    role: Mapped[UserRole] = mapped_column(SAEnum(UserRole), default=UserRole.CUSTOMER, nullable=False)
+    role: Mapped[UserRole] = mapped_column(SAEnum(UserRole, values_callable=lambda enum_cls: [item.value for item in enum_cls]), default=UserRole.CUSTOMER, nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    status: Mapped[UserStatus] = mapped_column(SAEnum(UserStatus), default=UserStatus.ACTIVE, nullable=False)
+    status: Mapped[UserStatus] = mapped_column(SAEnum(UserStatus, values_callable=lambda enum_cls: [item.value for item in enum_cls]), default=UserStatus.ACTIVE, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -84,9 +102,9 @@ class User(Base):
 class UserAddress(Base):
     __tablename__ = "user_addresses"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDChar(),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -119,7 +137,7 @@ class Category(Base):
 class Dish(Base):
     __tablename__ = "dishes"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), primary_key=True, default=uuid.uuid4)
     category_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("categories.id", ondelete="CASCADE"),
@@ -154,9 +172,9 @@ class Dish(Base):
 class DishOption(Base):
     __tablename__ = "dish_options"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), primary_key=True, default=uuid.uuid4)
     dish_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDChar(),
         ForeignKey("dishes.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -176,9 +194,9 @@ class DishOption(Base):
 class DishOptionItem(Base):
     __tablename__ = "dish_option_items"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), primary_key=True, default=uuid.uuid4)
     option_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDChar(),
         ForeignKey("dish_options.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -192,16 +210,16 @@ class DishOptionItem(Base):
 class Order(Base):
     __tablename__ = "orders"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), primary_key=True, default=uuid.uuid4)
     order_code: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     customer_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDChar(),
         ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
     shipper_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDChar(),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
@@ -211,9 +229,9 @@ class Order(Base):
     shipping_fee: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     discount_amount: Mapped[float] = mapped_column(Numeric(10, 2), default=0, nullable=False)
     final_amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    order_status: Mapped[OrderStatus] = mapped_column(SAEnum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
+    order_status: Mapped[OrderStatus] = mapped_column(SAEnum(OrderStatus, values_callable=lambda enum_cls: [item.value for item in enum_cls]), default=OrderStatus.PENDING, nullable=False)
     payment_method: Mapped[PaymentMethod] = mapped_column(SAEnum(PaymentMethod), nullable=False)
-    payment_status: Mapped[PaymentStatus] = mapped_column(SAEnum(PaymentStatus), default=PaymentStatus.UNPAID, nullable=False)
+    payment_status: Mapped[PaymentStatus] = mapped_column(SAEnum(PaymentStatus, values_callable=lambda enum_cls: [item.value for item in enum_cls]), default=PaymentStatus.UNPAID, nullable=False)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
@@ -235,22 +253,22 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_items"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), primary_key=True, default=uuid.uuid4)
     order_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDChar(),
         ForeignKey("orders.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
     dish_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDChar(),
         ForeignKey("dishes.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    options_selected: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    options_selected: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     subtotal: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
 
     order: Mapped[Order] = relationship(back_populates="items")
