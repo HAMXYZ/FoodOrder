@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Check, Flame, Minus, Plus, Star, X } from "lucide-react"
 import { SIZES, TOPPINGS, formatVND, type Food, type SizeOption, type Topping } from "@/lib/menu-data"
 import { cn } from "@/lib/utils"
@@ -17,7 +17,12 @@ export function FoodDetailModal() {
 }
 
 function FoodDetailContent({ food, onClose }: { food: Food; onClose: () => void }) {
-  const { addToCart } = useApp()
+  const { addToCart, detailLoading, detailError, isAdding } = useApp()
+  const stillOpen = useRef(true)
+  useEffect(() => {
+    stillOpen.current = true
+    return () => { stillOpen.current = false }
+  }, [])
   const [size, setSize] = useState<SizeOption>(SIZES[0])
   const [toppings, setToppings] = useState<Topping[]>([])
   const [note, setNote] = useState("")
@@ -75,15 +80,17 @@ function FoodDetailContent({ food, onClose }: { food: Food; onClose: () => void 
                   <Flame className="size-3.5 text-[#FFB27A]" aria-hidden="true" /> {food.calories} kcal
                 </span>
                 <SpicinessMeter level={food.spiciness} />
-                <span className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">
+                {food.rating > 0 && <span className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">
                   <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden="true" /> {food.rating} ·{" "}
                   {food.sold} đã bán
-                </span>
+                </span>}
               </div>
             </div>
           </div>
 
           <div className="flex flex-col gap-6 p-5">
+            {detailLoading && <p role="status">Đang tải chi tiết món...</p>}
+            {detailError && <p role="alert" className="text-destructive">{detailError}</p>}
             <p className="text-sm leading-relaxed text-muted-foreground">{food.description}</p>
 
             <fieldset className="flex flex-col gap-3">
@@ -175,9 +182,11 @@ function FoodDetailContent({ food, onClose }: { food: Food; onClose: () => void 
           <QuantityStepper value={quantity} onChange={setQuantity} />
           <button
             type="button"
-            onClick={() => {
-              addToCart(food, { size, toppings, note, quantity })
-              onClose()
+            disabled={detailLoading || !!detailError || isAdding(food.id)}
+            aria-busy={isAdding(food.id)}
+            onClick={async () => {
+              const added = await addToCart(food, { size, toppings, note, quantity })
+              if (added && stillOpen.current) onClose()
             }}
             className="flex h-12 flex-1 items-center justify-center rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:scale-[1.02] active:scale-[0.98] sm:text-base"
           >
@@ -221,12 +230,16 @@ function ChiliIcon({ className }: { className?: string }) {
 export function QuantityStepper({
   value,
   onChange,
+  onStep,
   min = 1,
+  max,
   size = "md",
 }: {
   value: number
   onChange: (v: number) => void
+  onStep?: (step: -1 | 1) => void
   min?: number
+  max?: number
   size?: "sm" | "md"
 }) {
   const btn = size === "sm" ? "size-7" : "size-10"
@@ -234,7 +247,7 @@ export function QuantityStepper({
     <div className="flex items-center gap-1 rounded-full border p-1">
       <button
         type="button"
-        onClick={() => onChange(Math.max(min, value - 1))}
+        onClick={() => onStep ? onStep(-1) : onChange(Math.max(min, value - 1))}
         disabled={value <= min && min > 0}
         aria-label="Giảm số lượng"
         className={cn(btn, "flex items-center justify-center rounded-full hover:bg-muted disabled:opacity-40")}
@@ -246,9 +259,10 @@ export function QuantityStepper({
       </span>
       <button
         type="button"
-        onClick={() => onChange(Math.min(99, value + 1))}
+        onClick={() => onStep ? onStep(1) : onChange(Math.min(max ?? 99, value + 1))}
+        disabled={max !== undefined && value >= max}
         aria-label="Tăng số lượng"
-        className={cn(btn, "flex items-center justify-center rounded-full text-primary hover:bg-accent")}
+        className={cn(btn, "flex items-center justify-center rounded-full text-primary hover:bg-accent disabled:opacity-40")}
       >
         <Plus className="size-4" aria-hidden="true" />
       </button>

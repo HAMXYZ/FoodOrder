@@ -752,5 +752,7 @@ function categoryToToppingGroup(category: CategoryId): Food["toppingGroup"] {
       return "drink"
     case "chay":
       return "veg"
+    default:
+      return "rice"
   }
 }

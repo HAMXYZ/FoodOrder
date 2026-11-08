@@ -1,0 +1,4 @@
+# Async SQLite for isolated transaction/concurrency tests; production stays asyncmy.
+aiosqlite==0.21.0
+# The numerical suite uses the same pinned dependency as the LinUCB runtime.
+-r requirements-ai.txt

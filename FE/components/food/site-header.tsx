@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Check, ChevronDown, LayoutDashboard, MapPin, Search, ShoppingBag, Sparkles, UserRound } from "lucide-react"
+import { Check, ChevronDown, LayoutDashboard, MapPin, Search, ShoppingBag, Sparkles, UserRound, PackageSearch } from "lucide-react"
 import { ADDRESSES } from "@/lib/menu-data"
 import { useApp } from "./app-state"
+import type { AuthUser } from "@/lib/auth-types"
 
 function LocationSelector() {
   const { address, setAddress } = useApp()
@@ -81,10 +82,14 @@ function SearchBar({ className = "" }: { className?: string }) {
 
 export function SiteHeader({
   onAuthClick,
+  onTrackClick,
   currentUser,
+  authLoading,
 }: {
   onAuthClick: () => void
-  currentUser: { name: string; email: string; role: "admin" | "customer" } | null
+  onTrackClick: () => void
+  currentUser: AuthUser | null
+  authLoading: boolean
 }) {
   const { cartCount, setCartOpen } = useApp()
 
@@ -101,8 +106,9 @@ export function SiteHeader({
             </span>
           </a>
           <div className="flex items-center gap-2 md:hidden">
+            <TrackingButton onClick={onTrackClick} />
             <CartButton count={cartCount} onClick={() => setCartOpen(true)} />
-            <AuthButton onClick={onAuthClick} userName={currentUser?.name} />
+            <AuthButton onClick={onAuthClick} userName={currentUser?.full_name} loading={authLoading} />
             {currentUser?.role === "admin" && <AdminLink compact />}
           </div>
         </div>
@@ -120,12 +126,20 @@ export function SiteHeader({
 
         <div className="hidden items-center gap-2 md:flex">
           {currentUser?.role === "admin" && <AdminLink />}
+          <TrackingButton onClick={onTrackClick} />
           <CartButton count={cartCount} onClick={() => setCartOpen(true)} />
-          <AuthButton onClick={onAuthClick} userName={currentUser?.name} />
+          <AuthButton onClick={onAuthClick} userName={currentUser?.full_name} loading={authLoading} />
         </div>
       </div>
     </header>
   )
+}
+
+function TrackingButton({ onClick }: { onClick: () => void }) {
+  return <button type="button" onClick={onClick} aria-label="Theo dõi đơn hàng" title="Theo dõi đơn hàng"
+    className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-card text-muted-foreground hover:text-primary">
+    <PackageSearch className="size-5" aria-hidden="true" />
+  </button>
 }
 
 function AdminLink({ compact = false }: { compact?: boolean }) {
@@ -166,16 +180,17 @@ function CartButton({ count, onClick }: { count: number; onClick: () => void }) 
   )
 }
 
-function AuthButton({ onClick, userName }: { onClick: () => void; userName?: string }) {
+function AuthButton({ onClick, userName, loading }: { onClick: () => void; userName?: string; loading: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={loading}
       className="flex h-11 items-center gap-2 rounded-full bg-foreground px-4 text-sm font-semibold text-background transition-opacity hover:opacity-90"
     >
       <UserRound className="size-4" aria-hidden="true" />
-      <span className="hidden max-w-36 truncate sm:inline">{userName ?? "Đăng nhập"}</span>
-      <span className="sr-only sm:hidden">{userName ?? "Đăng nhập"}</span>
+      <span className="hidden max-w-36 truncate sm:inline">{loading ? "Đang kiểm tra..." : userName ?? "Đăng nhập"}</span>
+      <span className="sr-only sm:hidden">{loading ? "Đang kiểm tra..." : userName ?? "Đăng nhập"}</span>
     </button>
   )
 }

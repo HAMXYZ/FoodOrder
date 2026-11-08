@@ -1,7 +1,7 @@
 "use client"
 
 import { SearchX, X } from "lucide-react"
-import { CATEGORIES, FOODS, type CategoryId } from "@/lib/menu-data"
+import { type CategoryId } from "@/lib/menu-data"
 import { useApp } from "./app-state"
 import { FoodCard } from "./food-card"
 
@@ -20,14 +20,16 @@ export function PopularDishes({
   category: CategoryId | null
   onClearCategory: () => void
 }) {
-  const { search, setSearch } = useApp()
+  const { search, setSearch, foods: menuFoods, categories, menuError } = useApp()
   const query = normalize(search.trim())
 
-  const foods = FOODS.filter((f) => !category || f.categories.includes(category))
+  const foods = menuFoods.filter((f) => !category || f.categories.includes(category))
     .filter((f) => !query || normalize(`${f.name} ${f.description}`).includes(query))
     .sort((a, b) => Number(!!b.bestseller) - Number(!!a.bestseller))
 
-  const categoryName = CATEGORIES.find((c) => c.id === category)?.name
+  const categoryName = categories.find((c) => c.id === category)?.name
+
+  if (menuError) return null
 
   return (
     <section id="popular" aria-labelledby="popular-title" className="flex scroll-mt-40 flex-col gap-4">
@@ -53,7 +55,7 @@ export function PopularDishes({
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed bg-card py-12 text-center">
           <SearchX className="size-8 text-muted-foreground" aria-hidden="true" />
           <p className="font-semibold">Không tìm thấy món phù hợp</p>
-          <p className="text-sm text-muted-foreground">Thử từ khoá khác hoặc hỏi trợ lý AI nhé.</p>
+          <p className="text-sm text-muted-foreground">Thử từ khoá khác hoặc chọn danh mục khác.</p>
         </div>
       )}
     </section>

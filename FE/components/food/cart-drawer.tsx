@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useState } from "react"
 import { Banknote, CheckCircle2, MapPin, ShoppingBag, Smartphone, Ticket, Trash2, Wallet, X } from "lucide-react"
 import { SHIPPING_FEE, VOUCHERS, formatVND } from "@/lib/menu-data"
+import { CART_LINE_LIMIT } from "@/lib/cart"
 import type { OrderTrackingDetails } from "@/components/food/order-tracking-modal"
 import { cn } from "@/lib/utils"
 import { useApp } from "./app-state"
@@ -50,7 +51,7 @@ function CartContent({
   onClose: () => void
   onOrderPlaced?: (order: OrderTrackingDetails) => void
 }) {
-  const { cart, subtotal, updateQuantity, removeItem, clearCart, address, setAddress, cartCount } = useApp()
+  const { cart, subtotal, updateQuantity, stepQuantity, removeItem, clearCart, address, setAddress, cartCount } = useApp()
   const [voucherInput, setVoucherInput] = useState("")
   const [voucherCode, setVoucherCode] = useState<string | null>(null)
   const [voucherError, setVoucherError] = useState("")
@@ -105,11 +106,11 @@ function CartContent({
           <CheckCircle2 className="size-10 text-success" aria-hidden="true" />
         </span>
         <h2 id="cart-title" className="text-2xl font-extrabold">
-          Đặt hàng thành công!
+          Bản xem thử đặt hàng
         </h2>
         <p className="text-pretty text-sm text-muted-foreground">
-          Đơn hàng {formatVND(placedOrder.total)} thanh toán qua {placedOrder.payment} đang được chuẩn bị và sẽ giao đến{" "}
-          <strong className="text-foreground">{address}</strong> trong khoảng 25 phút.
+          Bản demo {formatVND(placedOrder.total)} với phương thức {placedOrder.payment}, địa chỉ{" "}
+          <strong className="text-foreground">{address}</strong>. Chưa lưu đơn hàng trên hệ thống.
         </p>
         <button
           type="button"
@@ -175,7 +176,8 @@ function CartContent({
                         type="button"
                         onClick={() => removeItem(item.key)}
                         aria-label={`Xoá ${item.food.name}`}
-                        className="text-muted-foreground hover:text-destructive"
+                        aria-description={`Size ${item.size.id}${item.toppings.length ? ` · ${item.toppings.map(t => t.name).join(", ")}` : ""}${item.note ? ` · ${item.note}` : ""}`}
+                        className="-m-3.5 flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         <Trash2 className="size-4" aria-hidden="true" />
                       </button>
@@ -189,9 +191,11 @@ function CartContent({
                       <span className="font-bold text-primary">{formatVND(item.unitPrice * item.quantity)}</span>
                       <QuantityStepper
                         size="sm"
-                        min={0}
+                        min={1}
+                        max={CART_LINE_LIMIT}
                         value={item.quantity}
                         onChange={(q) => updateQuantity(item.key, q)}
+                        onStep={(step) => stepQuantity(item.key, step)}
                       />
                     </div>
                   </div>

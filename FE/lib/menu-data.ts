@@ -1,4 +1,4 @@
-export type CategoryId = "com" | "bun" | "banh-mi" | "tra-sua" | "chay" | "tra-trai-cay"
+export type CategoryId = string
 
 export type ToppingGroup = "rice" | "noodle" | "bread" | "drink" | "veg"
 

@@ -1,7 +1,8 @@
 "use client"
 
 import Image from "next/image"
-import { CATEGORIES, type CategoryId } from "@/lib/menu-data"
+import { type CategoryId } from "@/lib/menu-data"
+import { useApp } from "./app-state"
 import { cn } from "@/lib/utils"
 
 export function CategoryGrid({
@@ -11,13 +12,15 @@ export function CategoryGrid({
   active: CategoryId | null
   onChange: (id: CategoryId | null) => void
 }) {
+  const { categories } = useApp()
+  if (!categories.length) return null
   return (
     <section aria-labelledby="category-title" className="flex flex-col gap-4">
       <h2 id="category-title" className="text-xl font-bold md:text-2xl">
         Danh mục món
       </h2>
       <ul className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-        {CATEGORIES.map((cat) => {
+        {categories.map((cat) => {
           const isActive = active === cat.id
           return (
             <li key={cat.id}>

@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { Eye, EyeOff, Mail, Phone, UserRound, X } from "lucide-react"
 import { useOverlay } from "./use-overlay"
+import { useAuth } from "./auth-state"
 
 interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
-  onLoginSuccess: (user: { name: string; email: string }) => void
 }
 
 type AuthTab = "login" | "register"
@@ -15,35 +15,56 @@ type AuthTab = "login" | "register"
 const inputClassName =
   "h-12 w-full rounded-xl border bg-background px-4 text-sm outline-none transition focus:border-[#E85D04] focus:ring-4 focus:ring-[#E85D04]/15"
 
-export function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const { login, register } = useAuth()
   const [activeTab, setActiveTab] = useState<AuthTab>("login")
   const [feedback, setFeedback] = useState("")
+  const [pending, setPending] = useState(false)
+
+  useEffect(() => { if (isOpen) setFeedback("") }, [isOpen])
 
   useOverlay(isOpen, onClose)
 
   if (!isOpen) return null
 
-  const completeLogin = () => {
-    onLoginSuccess({ name: "Đỗ Hoàng Long", email: "long@foodai.com" })
-    onClose()
-  }
-
-  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (pending) return
+    const form = event.currentTarget
+    const data = new FormData(form)
+    setPending(true)
     setFeedback("")
-    completeLogin()
+    try {
+      await login({ email: String(data.get("identifier") || ""),
+        password: String(data.get("password") || ""), remember: data.get("remember") === "on" })
+      form.reset()
+      onClose()
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Chưa thể đăng nhập. Vui lòng thử lại.")
+    } finally { setPending(false) }
   }
 
-  const handleRegister = (event: FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (pending) return
+    const form = event.currentTarget
     const formData = new FormData(event.currentTarget)
     if (formData.get("password") !== formData.get("confirmPassword")) {
       setFeedback("Mật khẩu nhập lại chưa khớp. Vui lòng kiểm tra lại.")
       return
     }
 
+    setPending(true)
     setFeedback("")
-    completeLogin()
+    try {
+      await register({ full_name: String(formData.get("name") || ""),
+        email: String(formData.get("email") || ""), password: String(formData.get("password") || ""),
+        phone_number: String(formData.get("phone") || "") })
+      form.reset()
+      onClose()
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Chưa thể đăng ký. Vui lòng thử lại.")
+    } finally { setPending(false) }
   }
 
   const showUnavailableMessage = (provider: string) => {
@@ -90,6 +111,7 @@ export function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
         >
           <button
             id="auth-login-tab"
+            disabled={pending}
             type="button"
             role="tab"
             aria-selected={activeTab === "login"}
@@ -106,6 +128,7 @@ export function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
           </button>
           <button
             id="auth-register-tab"
+            disabled={pending}
             type="button"
             role="tab"
             aria-selected={activeTab === "register"}
@@ -130,17 +153,17 @@ export function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
           aria-labelledby={activeTab === "login" ? "auth-login-tab" : "auth-register-tab"}
         >
           {activeTab === "login" ? (
-            <form className="space-y-4" onSubmit={handleLogin}>
+            <form key="login" className="space-y-4" onSubmit={handleLogin}>
               <div className="space-y-2">
                 <label htmlFor="auth-login-identifier" className="text-sm font-semibold">
-                  Email hoặc số điện thoại
+                  Email
                 </label>
                 <input
                   id="auth-login-identifier"
                   name="identifier"
-                  type="text"
+                  type="email"
                   autoComplete="username"
-                  placeholder="you@example.com hoặc 09..."
+                  placeholder="you@example.com"
                   required
                   className={inputClassName}
                 />
@@ -173,13 +196,14 @@ export function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
 
               <button
                 type="submit"
+                disabled={pending}
                 className="h-12 w-full rounded-xl bg-[#E85D04] text-sm font-bold text-white transition hover:bg-[#d65300] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#E85D04]/30"
               >
-                Đăng nhập
+                {pending ? "Đang đăng nhập..." : "Đăng nhập"}
               </button>
             </form>
           ) : (
-            <form className="space-y-3.5" onSubmit={handleRegister}>
+            <form key="register" className="space-y-3.5" onSubmit={handleRegister}>
               <div className="space-y-2">
                 <label htmlFor="auth-register-name" className="text-sm font-semibold">
                   Họ và tên
@@ -268,9 +292,10 @@ export function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
 
               <button
                 type="submit"
+                disabled={pending}
                 className="h-12 w-full rounded-xl bg-[#E85D04] text-sm font-bold text-white transition hover:bg-[#d65300] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#E85D04]/30"
               >
-                Tạo tài khoản
+                {pending ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
               </button>
             </form>
           )}

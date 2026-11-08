@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, UUID4, field_validator
 
@@ -61,6 +62,60 @@ class DishResponse(DishBase):
     updated_at: datetime
 
 
+class MenuDishResponse(BaseModel):
+    id: UUID
+    category_id: int
+    category_name: str
+    name: str
+    description: str
+    base_price: float
+    calories: int
+    spiciness_level: int
+    is_vegetarian: bool
+    image_url: str | None
+    is_available: bool
+
+
+class CategoryResponse(BaseModel):
+    id: int
+    name: str
+    description: str | None
+    image_url: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InteractionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    event_id: UUID4
+    dish_id: UUID
+
+
+class ViewInteractionRequest(InteractionRequest):
+    event_type: Literal["view"] = "view"
+
+
+class AddToCartInteractionRequest(InteractionRequest):
+    event_type: Literal["add_to_cart"] = "add_to_cart"
+
+
+class InteractionResponse(BaseModel):
+    event_id: UUID4
+    dish_id: UUID
+    event_type: Literal["view", "add_to_cart"]
+    created_at: datetime
+    duplicate: bool
+
+
+class ViewInteractionResponse(InteractionResponse):
+    event_type: Literal["view"]
+
+
+class AddToCartInteractionResponse(InteractionResponse):
+    event_type: Literal["add_to_cart"]
+
+
 class OrderBase(BaseModel):
     customer_id: UUID4
     shipper_id: UUID4 | None = None
@@ -104,6 +159,33 @@ class OrderItemResponse(OrderItemBase):
     id: UUID4
 
 
+class CustomerOrderItemResponse(BaseModel):
+    id: UUID
+    dish_id: UUID
+    dish_name: str
+    quantity: int = Field(..., ge=1)
+    unit_price: Decimal = Field(..., ge=0)
+    subtotal: Decimal = Field(..., ge=0)
+    options_selected: dict[str, Any]
+
+
+class CustomerOrderResponse(BaseModel):
+    id: UUID
+    order_code: str
+    order_status: OrderStatus
+    delivery_address: str
+    created_at: datetime
+    updated_at: datetime
+    total_amount: Decimal
+    shipping_fee: Decimal
+    discount_amount: Decimal
+    final_amount: Decimal
+    payment_method: PaymentMethod
+    payment_status: PaymentStatus
+    cancellation_reason: str | None = None
+    items: list[CustomerOrderItemResponse]
+
+
 __all__ = [
     "UserBase",
     "UserCreate",
@@ -111,6 +193,16 @@ __all__ = [
     "DishBase",
     "DishCreate",
     "DishResponse",
+    "MenuDishResponse",
+    "CategoryResponse",
+    "InteractionRequest",
+    "InteractionResponse",
+    "AddToCartInteractionRequest",
+    "AddToCartInteractionResponse",
+    "ViewInteractionRequest",
+    "ViewInteractionResponse",
+    "CustomerOrderResponse",
+    "CustomerOrderItemResponse",
     "OrderBase",
     "OrderCreate",
     "OrderResponse",

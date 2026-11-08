@@ -1,0 +1,144 @@
+{
+  "categories": [
+    {
+      "name": "Cơm",
+      "description": null,
+      "image_url": "/images/com-tam.png"
+    },
+    {
+      "name": "Bún & Phở",
+      "description": null,
+      "image_url": "/images/pho.png"
+    },
+    {
+      "name": "Bánh mì",
+      "description": null,
+      "image_url": "/images/banh-mi.png"
+    },
+    {
+      "name": "Trà sữa",
+      "description": null,
+      "image_url": "/images/tra-sua.png"
+    },
+    {
+      "name": "Món chay",
+      "description": null,
+      "image_url": "/images/goi-cuon.png"
+    },
+    {
+      "name": "Trà trái cây",
+      "description": null,
+      "image_url": "/images/tra-dao.png"
+    }
+  ],
+  "dishes": [
+    {
+      "id": "694606b5-7fe6-4f9d-a37a-86ad4e187325",
+      "category": "Cơm",
+      "name": "Cơm tấm sườn bì chả",
+      "description": "Sườn cốt lết nướng than hồng, bì heo, chả trứng, mỡ hành và nước mắm chua ngọt.",
+      "image_url": "/images/com-tam.png",
+      "base_price": 55000,
+      "calories": 720,
+      "spiciness_level": 1,
+      "is_vegetarian": false,
+      "is_available": true
+    },
+    {
+      "id": "ab258c28-c9a7-4d4b-a0f4-7940efae2658",
+      "category": "Bún & Phở",
+      "name": "Bún bò Huế đặc biệt",
+      "description": "Nước dùng sả ớt đậm đà, bắp bò, giò heo, chả cua và rau sống tươi.",
+      "image_url": "/images/bun-bo.png",
+      "base_price": 59000,
+      "calories": 650,
+      "spiciness_level": 3,
+      "is_vegetarian": false,
+      "is_available": true
+    },
+    {
+      "id": "7656c9ea-153f-4298-a36e-bb7feb8d5543",
+      "category": "Trà sữa",
+      "name": "Trà sữa trân châu đường đen",
+      "description": "Sữa tươi thanh béo, trân châu nấu đường đen dẻo thơm, ít ngọt theo yêu cầu.",
+      "image_url": "/images/tra-sua.png",
+      "base_price": 39000,
+      "calories": 380,
+      "spiciness_level": 0,
+      "is_vegetarian": false,
+      "is_available": true
+    },
+    {
+      "id": "277c5744-e638-47f4-b034-dc9ac2bdb21b",
+      "category": "Món chay",
+      "name": "Cơm chay thập cẩm",
+      "description": "Đậu hũ sốt cà, nấm xào, rau củ theo mùa và canh rong biển thanh mát.",
+      "image_url": "/images/com-chay.png",
+      "base_price": 42000,
+      "calories": 480,
+      "spiciness_level": 1,
+      "is_vegetarian": true,
+      "is_available": true
+    },
+    {
+      "id": "f351e730-9d3f-4f7d-942a-bc8414ed1a8c",
+      "category": "Bún & Phở",
+      "name": "Bún chả Hà Nội",
+      "description": "Chả viên và thịt ba chỉ nướng, nước chấm chua ngọt, bún tươi và rau thơm.",
+      "image_url": "/images/bun-cha.png",
+      "base_price": 49000,
+      "calories": 590,
+      "spiciness_level": 1,
+      "is_vegetarian": false,
+      "is_available": true
+    },
+    {
+      "id": "32c8862c-2b41-4270-86cb-a02adff3bd36",
+      "category": "Bún & Phở",
+      "name": "Phở bò tái nạm",
+      "description": "Nước dùng hầm xương 12 tiếng, bò tái, nạm mềm, hành tây và rau thơm.",
+      "image_url": "/images/pho.png",
+      "base_price": 65000,
+      "calories": 560,
+      "spiciness_level": 1,
+      "is_vegetarian": false,
+      "is_available": true
+    },
+    {
+      "id": "bc6df33d-a92b-4998-8213-c35d2800cd9f",
+      "category": "Bánh mì",
+      "name": "Bánh mì thịt nướng",
+      "description": "Vỏ giòn rụm, thịt nướng sả, đồ chua, dưa leo, ngò và tương ớt nhà làm.",
+      "image_url": "/images/banh-mi.png",
+      "base_price": 25000,
+      "calories": 420,
+      "spiciness_level": 2,
+      "is_vegetarian": false,
+      "is_available": true
+    },
+    {
+      "id": "384b1ffe-ac2c-4d47-81a8-f48832c9579b",
+      "category": "Món chay",
+      "name": "Gỏi cuốn chay",
+      "description": "Bánh tráng cuốn đậu hũ, bún, rau sống và xà lách, chấm sốt đậu phộng.",
+      "image_url": "/images/goi-cuon.png",
+      "base_price": 35000,
+      "calories": 260,
+      "spiciness_level": 0,
+      "is_vegetarian": true,
+      "is_available": true
+    },
+    {
+      "id": "744b7309-98a7-4c2e-a130-c185446a8c15",
+      "category": "Trà trái cây",
+      "name": "Trà đào cam sả",
+      "description": "Trà đen ủ lạnh, đào miếng giòn, cam vàng tươi và sả thơm mát.",
+      "image_url": "/images/tra-dao.png",
+      "base_price": 35000,
+      "calories": 180,
+      "spiciness_level": 0,
+      "is_vegetarian": true,
+      "is_available": true
+    }
+  ]
+}

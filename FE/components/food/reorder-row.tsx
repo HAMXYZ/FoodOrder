@@ -6,7 +6,9 @@ import { ORDER_HISTORY, formatVND, getFood } from "@/lib/menu-data"
 import { useApp } from "./app-state"
 
 export function ReorderRow() {
-  const { addToCart, openFood } = useApp()
+  const { addToCart, openFood, foods, isAdding } = useApp()
+
+  if (!foods.length) return null
 
   return (
     <section aria-labelledby="reorder-title" className="flex flex-col gap-4">
@@ -18,7 +20,8 @@ export function ReorderRow() {
       </div>
       <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
         {ORDER_HISTORY.map((entry) => {
-          const food = getFood(entry.foodId)
+          const sample = getFood(entry.foodId)
+          const food = foods.find((dish) => dish.name === sample?.name)
           if (!food) return null
           return (
             <li key={entry.foodId} className="w-72 shrink-0 snap-start md:w-auto">
@@ -45,7 +48,9 @@ export function ReorderRow() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => addToCart(food)}
+                  onClick={() => { void addToCart(food) }}
+                  disabled={isAdding(food.id)}
+                  aria-busy={isAdding(food.id)}
                   aria-label={`Đặt lại ${food.name}`}
                   className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
                 >

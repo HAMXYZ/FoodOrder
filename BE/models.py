@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import Boolean, CHAR, DateTime, Enum as SAEnum, ForeignKey, Integer, JSON, Numeric, String, Text, func
+from sqlalchemy import BigInteger, Boolean, CHAR, CheckConstraint, DateTime, Enum as SAEnum, ForeignKey, Index, Integer, JSON, Numeric, String, Text, UniqueConstraint, func
+from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.types import TypeDecorator
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -275,6 +276,76 @@ class OrderItem(Base):
     dish: Mapped[Dish] = relationship(back_populates="order_items")
 
 
+class UTCDateTime(TypeDecorator):
+    """MariaDB DATETIME has no timezone; persist UTC and restore an aware value."""
+
+    impl = DateTime
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name in ("mysql", "mariadb"):
+            return dialect.type_descriptor(DATETIME(fsp=6))
+        return dialect.type_descriptor(DateTime())
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Interaction timestamps must include a timezone")
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
+
+
+class UserInteraction(Base):
+    __tablename__ = "user_interactions"
+    __table_args__ = (
+        UniqueConstraint("event_id", name="uq_user_interactions_event_id"),
+        UniqueConstraint("event_type", "order_item_id", name="uq_user_interactions_purchase_item"),
+        CheckConstraint(
+            "event_type <> 'purchase' OR (order_id IS NOT NULL AND order_item_id IS NOT NULL "
+            "AND quantity IS NOT NULL AND quantity > 0)",
+            name="ck_user_interactions_purchase_source",
+        ),
+        Index("ix_user_interactions_order_time", "order_id", "created_at"),
+        Index("ix_user_interactions_order_item", "order_item_id"),
+        Index("ix_user_interactions_user_type_time", "user_id", "event_type", "created_at"),
+        Index("ix_user_interactions_dish_type_time", "dish_id", "event_type", "created_at"),
+        Index("ix_user_interactions_type_time", "event_type", "created_at"),
+        Index("ix_user_interactions_created_at", "created_at"),
+        {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_unicode_ci"},
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True)
+    event_id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    dish_id: Mapped[uuid.UUID] = mapped_column(UUIDChar(), ForeignKey("dishes.id", ondelete="RESTRICT"), nullable=False)
+    # Kept as a string so later stories can add types without replacing this table.
+    # Each endpoint validates its own allowed type; US8.1 accepts only "view".
+    event_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(), default=lambda: datetime.now(timezone.utc),
+        server_default=func.utc_timestamp(6), nullable=False,
+    )
+
+    # Nullable for existing view/add_to_cart rows; purchase requires all three via CHECK.
+    order_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUIDChar(), ForeignKey("orders.id", name="fk_user_interactions_order", ondelete="RESTRICT"), nullable=True,
+    )
+    order_item_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUIDChar(), ForeignKey("order_items.id", name="fk_user_interactions_order_item", ondelete="RESTRICT"), nullable=True,
+    )
+    quantity: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    user: Mapped[User] = relationship()
+    dish: Mapped[Dish] = relationship()
+    order: Mapped[Order | None] = relationship()
+    order_item: Mapped[OrderItem | None] = relationship()
+
+
 __all__ = [
     "User",
     "UserAddress",
@@ -284,6 +355,7 @@ __all__ = [
     "DishOptionItem",
     "Order",
     "OrderItem",
+    "UserInteraction",
     "UserRole",
     "UserStatus",
     "OrderStatus",

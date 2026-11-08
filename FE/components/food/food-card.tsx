@@ -25,7 +25,7 @@ export function FoodBadges({ food }: { food: Food }) {
 }
 
 export function FoodCard({ food }: { food: Food }) {
-  const { openFood, addToCart } = useApp()
+  const { openFood, addToCart, isAdding } = useApp()
   const discount = food.originalPrice ? Math.round((1 - food.price / food.originalPrice) * 100) : 0
 
   return (
@@ -59,11 +59,13 @@ export function FoodCard({ food }: { food: Food }) {
             <Flame className="size-3.5 text-primary" aria-hidden="true" />
             {food.calories} kcal
           </span>
-          <span className="flex items-center gap-1">
-            <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
-            {food.rating}
-            <span className="hidden sm:inline">· {food.sold} đã bán</span>
-          </span>
+          {food.rating > 0 ? (
+            <span className="flex items-center gap-1">
+              <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
+              {food.rating}
+              {food.sold && <span className="hidden sm:inline">· {food.sold} đã bán</span>}
+            </span>
+          ) : <span>Chưa có đánh giá</span>}
         </div>
         <div className="mt-auto flex items-end justify-between gap-2 pt-2">
           <div className="flex flex-col leading-tight">
@@ -74,7 +76,9 @@ export function FoodCard({ food }: { food: Food }) {
           </div>
           <button
             type="button"
-            onClick={() => addToCart(food)}
+            onClick={() => { void addToCart(food) }}
+            disabled={isAdding(food.id)}
+            aria-busy={isAdding(food.id)}
             aria-label={`Thêm ${food.name} vào giỏ`}
             className="relative z-10 flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 transition-transform hover:scale-110 active:scale-95"
           >
