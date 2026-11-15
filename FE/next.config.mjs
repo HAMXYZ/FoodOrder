@@ -1,11 +1,6 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  images: {
-    unoptimized: true,
-  },
-}
-
-export default nextConfig
+  images: { unoptimized: true },
+  // A single worker keeps Windows builds deterministic on synced/guarded folders.
+  experimental: { cpus: 1 },
+};
+export default nextConfig;

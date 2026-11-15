@@ -1,0 +1,36 @@
+{
+  "validation": {
+    "dishes": 25,
+    "ratings_all": 474,
+    "train": 366,
+    "test": 108,
+    "source_users": 40,
+    "overlap": 0,
+    "invalid_rows": 0,
+    "errors": []
+  },
+  "method": "Content ridge; cùng đặc trưng với LinUCB, không phải đánh giá trực tiếp chính sách online",
+  "training_rows": 366,
+  "holdout_rows": 108,
+  "features": 35,
+  "model": {
+    "mae": 0.7933,
+    "rmse": 1.0142
+  },
+  "baseline_train_popularity": {
+    "mae": 0.72,
+    "rmse": 0.9139
+  },
+  "ranking_at_5": {
+    "ndcg": 0.1729,
+    "recall": 0.3046,
+    "users_with_positive_holdout": 29
+  },
+  "limitations": [
+    "Chỉ 40 người dùng nguồn và 25 món; không đại diện người dùng thật.",
+    "Chỉ ratings_train được dùng để học và tính phổ biến; ratings_test chỉ chấm điểm.",
+    "Món chưa được đánh giá trong holdout được tính không liên quan khi tính ranking; đây là thước đo hạn chế trên dữ liệu thưa.",
+    "Điểm RMSE/MAE không đo khả năng hội thoại. Trợ lý local vẫn là tư vấn theo dữ liệu, chưa phải LLM.",
+    "LinUCB online học từ tương tác tài khoản thật; thử nghiệm offline dùng ridge để dự đoán sao và không có vòng phản hồi online."
+  ]
+}

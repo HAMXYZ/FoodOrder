@@ -1,0 +1,11 @@
+﻿test_id,scenario,input_or_setup,expected_result
+TC01,Người dùng mới chưa có đánh giá,user_id chưa có lịch sử,"Hiển thị món phổ biến, không lỗi"
+TC02,Người dùng thích món nước,Nhiều đánh giá 4-5 sao cho món nước,Ưu tiên món tương tự trong gợi ý
+TC03,Món chưa có đánh giá,dish_id không có trong tập train,Dùng phương án dự phòng dựa trên thông tin món/phổ biến
+TC04,Điểm đánh giá không hợp lệ,rating=0 hoặc rating=6,Từ chối dữ liệu ngoài khoảng 1-5
+TC05,Đánh giá hợp lệ,"rating từ 1 đến 5, món tồn tại",Lưu đánh giá thành công
+TC06,Đánh giá trùng,Cùng user_id và dish_id gửi lại,Cập nhật hoặc từ chối theo quy tắc hệ thống
+TC07,Đánh giá 1 sao,rating=1,Không xem là sở thích tích cực
+TC08,Đánh giá 5 sao,rating=5,Ghi nhận là tín hiệu sở thích tích cực
+TC09,Thiếu dữ liệu bắt buộc,Thiếu user_id hoặc dish_id,Báo lỗi kiểm tra dữ liệu
+TC10,Kiểm tra chất lượng dữ liệu,Có ID không hợp lệ/null/rating ngoài 1-5,Thống kê và xử lý dòng lỗi trước đánh giá mô hình

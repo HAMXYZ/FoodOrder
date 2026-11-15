@@ -1,5 +1,4 @@
-import { FoodApp } from "@/components/food/food-app"
-
+import { FoodOrderApp } from "@/components/food/full-app";
 export default function Page() {
-  return <FoodApp />
+  return <FoodOrderApp />;
 }

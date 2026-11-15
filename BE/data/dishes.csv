@@ -1,0 +1,26 @@
+﻿dish_id,dish_name,category,main_ingredient,price_vnd
+1,Phở bò,Món nước,Bò,45000
+2,Phở gà,Món nước,Gà,40000
+3,Bún chả,Bún,Heo,50000
+4,Bún bò Huế,Món nước,Bò,48000
+5,Cơm tấm sườn,Cơm,Heo,45000
+6,Cơm gà xối mỡ,Cơm,Gà,50000
+7,Cơm rang dưa bò,Cơm,Bò,55000
+8,Bánh mì thịt,Bánh mì,Heo,25000
+9,Bánh mì gà,Bánh mì,Gà,27000
+10,Gỏi cuốn,Khai vị,Tôm,30000
+11,Nem rán,Khai vị,Heo,35000
+12,Bánh xèo,Bánh,Tôm,40000
+13,Mì xào bò,Mì,Bò,45000
+14,Mì Ý sốt bò bằm,Mì,Bò,65000
+15,Pizza phô mai,Pizza,Phô mai,89000
+16,Salad ức gà,Salad,Gà,55000
+17,Gà rán,Đồ chiên,Gà,39000
+18,Khoai tây chiên,Đồ chiên,Khoai tây,25000
+19,Lẩu thái,Lẩu,Hải sản,180000
+20,Lẩu gà lá é,Lẩu,Gà,220000
+21,Chè đậu đỏ,Tráng miệng,Đậu,20000
+22,Sữa chua nếp cẩm,Tráng miệng,Sữa chua,25000
+23,Trà đào,Đồ uống,Trà,30000
+24,Trà chanh,Đồ uống,Trà,18000
+25,Nước cam,Đồ uống,Cam,25000
